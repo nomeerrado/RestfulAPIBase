@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using RestfulAPIBase.Lib.Auth.Models;
+using RestfulAPIBase.Lib.Auth.UseCases;
 
 namespace RestfulAPIBase.Controllers.Auth;
 
@@ -7,11 +8,24 @@ namespace RestfulAPIBase.Controllers.Auth;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
+    private readonly Authenticate _authenticate;
+
+    public AuthController(Authenticate authenticate)
+    {
+        _authenticate = authenticate;
+    }
+
     [HttpPost("login/sample")]
     public IActionResult LoginSample([FromBody] LoginModel model)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
-        if (model.Username != "sample" || model.Password != "123") return Unauthorized();
-        return Ok();
+
+        var user = _authenticate.Execute(model);
+        if(user == null)
+        {
+            return Unauthorized();
+        }
+
+        return Ok(user);
     }
 }
